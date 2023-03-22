@@ -1,0 +1,432 @@
+hello i have a code that i need it to be completed to perfom this task "but i need it to perform this : "need a bootstrap  code that will perform three tasks , the tasks will have a progress bar each with titles namely verify phone , pick meter number and input password , the tasks should be displayed for user to enter some inputs if the previous task has been completed , in the fisrt task the user should click the head button of the first task and a pop up  form should display having a form title of verify form, one input element for phone number and include the country codes at the begining for select then a verify button , when this first form is submitted the phone number enterd by the user will receive a message  , only after this should the second task be available and the progress bar incremented to the second header task which is a form having the first input a user to select between prepaid or postpaid and a second input the user to select from a list of values from the db according to the value of the first input either prepaid or postpaid , then a third input value for amount plus a submit button , after the second form is submitted the third form in the third task will dislpay the phone number entered in the first form , the second value input of the second form and the third value input of the second form , in additon the third form will have an input called password where the user will have to enter his password before form submission.after the final form submission the data is captured in data.php for display "
+this is the code,
+
+
+"
+
+
+<div class="container">
+    <h3>Progress Bar</h3>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" href="#" data-toggle="modal" data-target="#verifyModal">Verify Phone</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="modal" data-target="#meterModal" disabled>Pick Meter Number</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="modal" data-target="#passwordModal" disabled>Input Password</a>
+        </li>
+    </ul>
+    <br>
+    <div class="tab-content">
+        <div id="step1" class="tab-pane active">
+            <h3>Verify Phone</h3>
+            <form id="verifyForm">
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <select class="form-control" id="countryCode" name="countryCode">
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                                <option value="+234">+234</option>
+                            </select>
+                        </div>
+                        <input type="text" class="form-control" id="phone" name="phone">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Verify</button>
+            </form>
+        </div>
+        <div id="step2" class="tab-pane">
+            <h3>Pick Meter Number</h3>
+            <form id="meterForm">
+                <div class="form-group">
+                    <label for="meterType">Select Meter Type:</label>
+                    <select class="form-control" id="meterType" name="meterType">
+                        <option value="">-- Select meter type --</option>
+                        <option value="prepaid">Prepaid</option>
+                        <option value="postpaid">Postpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meterValue">Select Meter Value:</label>
+                    <select class="form-control" id="meterValue" name="meterValue" disabled>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meterAmount">Amount:</label>
+                    <input type="number" class="form-control" id="meterAmount" name="meterAmount" disabled>
+                </div>
+                <button type="submit" class="btn btn-primary" disabled>Submit</button>
+            </form>
+        </div>
+        <div id="step3" class="tab-pane">
+            <h3>Input Password</h3>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="text" class="form-control" id="phone" name="phone" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="meterType">Meter Type:</label>
+                    <input type="text" class="form-control" id="meterType" name="meterType" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="meterValue">Meter Value:</label>
+                    <input type="text"
+
+"
+
+
+ just complete it. 
+
+
+
+
+
+
+
+
+ ////js
+
+ $(document).ready(function() {
+  // Verify Phone form submission
+  $('#verifyForm').submit(function(event) {
+    event.preventDefault(); // Prevent form submission
+    var phoneNumber = $('#countryCode').val() + $('#phone').val(); // Get full phone number
+    // Send verification message
+    $.post('send_sms.php', { phone: phoneNumber }, function(data) {
+      if (data.success) {
+        // Enable Meter Number tab and show success message
+        $('#meterModal .modal-body p').html('Verification message sent to ' + phoneNumber);
+        $('.nav-tabs li:nth-child(2) a').attr('data-toggle', 'modal').attr('data-target', '#meterModal').removeAttr('disabled');
+        $('.nav-tabs li:nth-child(2) a').tab('show');
+      } else {
+        // Show error message
+        $('#verifyModal .modal-body p').html('Failed to send verification message');
+      }
+    }, 'json');
+  });
+
+  // Meter Number form submission
+  $('#meterForm').submit(function(event) {
+    event.preventDefault(); // Prevent form submission
+    // Get form values
+    var meterType = $('#meterType').val();
+    var meterValue = $('#meterValue').val();
+    var meterAmount = $('#meterAmount').val();
+    // Update Password form values
+    $('#passwordForm #phone').val($('#countryCode').val() + $('#phone').val());
+    $('#passwordForm #meterType').val(meterType);
+    $('#passwordForm #meterValue').val(meterValue);
+    // Enable Password tab
+    $('.nav-tabs li:nth-child(3) a').attr('data-toggle', 'modal').attr('data-target', '#passwordModal').removeAttr('disabled');
+    $('.nav-tabs li:nth-child(3) a').tab('show');
+  });
+
+  // Password form submission
+  $('#passwordForm').submit(function(event) {
+    event.preventDefault(); // Prevent form submission
+    var formData = $(this).serialize(); // Get form data
+    // Submit form data
+    $.post('data.php', formData, function(data) {
+      // Show success message
+      $('#passwordModal .modal-body p').html('Data captured: ' + data);
+    });
+  });
+
+  // Populate Meter Value select based on Meter Type
+  $('#meterType').change(function() {
+    var meterType = $(this).val();
+    if (meterType) {
+      $.get('get_meter_values.php', { type: meterType }, function(data) {
+        $('#meterValue').html(data).removeAttr('disabled');
+      });
+    } else {
+      $('#meterValue').html('<option value="">-- Select meter value --</option>').attr('disabled', true);
+    }
+  });
+});
+
+
+
+<div class="container">
+    <h3>Progress Bar</h3>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" href="#" data-toggle="modal" data-target="#verifyModal">Verify Phone</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="modal" data-target="#meterModal" disabled>Pick Meter Number</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="modal" data-target="#passwordModal" disabled>Input Password</a>
+        </li>
+    </ul>
+    <br>
+    <div class="tab-content">
+        <div id="step1" class="tab-pane active">
+            <h3>Verify Phone</h3>
+            <form id="verifyForm">
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <select class="form-control" id="countryCode" name="countryCode">
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                                <option value="+234">+234</option>
+                            </select>
+                        </div>
+                        <input type="text" class="form-control" id="phone" name="phone">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Verify</button>
+            </form>
+        </div>
+        <div id="step2" class="tab-pane">
+            <h3>Pick Meter Number</h3>
+            <form id="meterForm">
+                <div class="form-group">
+                    <label for="meterType">Select Meter Type:</label>
+                    <select class="form-control" id="meterType" name="meterType">
+                        <option value="">-- Select meter type --</option>
+                        <option value="prepaid">Prepaid</option>
+                        <option value="postpaid">Postpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meterValue">Select Meter Value:</label>
+                    <select class="form-control" id="meterValue" name="meterValue" disabled>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meterAmount">Amount:</label>
+                    <input type="number" class="form-control" id="meterAmount" name="meterAmount" disabled>
+                </div>
+                <button type="submit" class="btn btn-primary" disabled>Submit</button>
+            </form>
+        </div>
+        <div id="step3" class="tab-pane">
+            <h3>Input Password</h3>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="text" class="form-control" id="passwordPhone" name="passwordPhone" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="meterType">Meter Type:</label>
+                    <input type="text" class="form-control" id="passwordMeterType" name="passwordMeterType" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="meterValue">Meter Value:</label>
+                    <input type="text" class
+
+
+
+//code in recharge.php
+<?php
+require('../base/header.php');
+?>
+
+<div class="container">
+    <h3>Progress Bar</h3>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <!-- <a class="nav-link active" href="#" data-toggle="modal" data-target="#verifyModal">Verify Phone</a> -->
+            <button class="btn btn-primary" data-toggle="modal" data-target="#verifyModal">Recharge</button>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="modal" data-target="#meterModal" disabled>Pick Meter Number</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-toggle="modal" data-target="#passwordModal" disabled>Input Password</a>
+        </li>
+    </ul>
+    <br>
+    <!-- <div class="tab-content">
+        <div id="step1" class="tab-pane">
+            <h3>Verify Phone</h3>
+            <form id="verifyForm">
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <select class="form-control" id="countryCode" name="countryCode">
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                                <option value="+254">+254</option>
+                            </select>
+                        </div>
+                        <input type="text" class="form-control" id="phone" name="phone">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Verify</button>
+            </form>
+        </div>
+        <div id="step2" class="tab-pane">
+            <h3>Pick Meter Number</h3>
+            <form id="meterForm">
+                <div class="form-group">
+                    <label for="meterType">Select Meter Type:</label>
+                    <select class="form-control" id="meterType" name="meterType">
+                        <option value="">-- Select meter type --</option>
+                        <option value="prepaid">Prepaid</option>
+                        <option value="postpaid">Postpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meterValue">Select Meter Value:</label>
+                    <select class="form-control" id="meterValue" name="meterValue" disabled>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="meterAmount">Amount:</label>
+                    <input type="number" class="form-control" id="meterAmount" name="meterAmount" disabled>
+                </div>
+                <button type="submit" class="btn btn-primary" disabled>Submit</button>
+            </form>
+        </div>
+        <div id="step3" class="tab-pane">
+            <h3>Input Password</h3>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="text" class="form-control" id="passwordPhone" name="passwordPhone" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="meterType">Meter Type:</label>
+                    <input type="text" class="form-control" id="passwordMeterType" name="passwordMeterType" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="meterValue">Meter Value:</label>
+                    <input type="text" class="form-control" id="passwordMeterValue" name="passwordMeterValue" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" class="form-control" id="password" name="password">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            // Verify Phone form submission
+            $('#verifyForm').submit(function (event) {
+                event.preventDefault(); // Prevent form submission
+                var phoneNumber = $('#countryCode').val() + $('#phone').val(); // Get full phone number
+                // Send verification message
+                $.post('send_sms.php', { phone: phoneNumber }, function (data) {
+                    if (data.success) {
+                        // Enable Meter Number tab and show success message
+                        $('#meterModal .modal-body p').html('Verification message sent to ' + phoneNumber);
+                        $('.nav-tabs li:nth-child(2) a').attr('data-toggle', 'modal').attr('data-target',
+                            '#meterModal').removeAttr('disabled');
+                        $('.nav-tabs li:nth-child(2) a').tab('show');
+                    } else {
+                        // Show error message
+                        $('#verifyModal .modal-body p').html('Failed to send verification message');
+                    }
+                }, 'json');
+            });
+
+            // Meter Number form submission
+            $('#meterForm').submit(function (event) {
+                event.preventDefault(); // Prevent form submission
+                // Get form values
+                var meterType = $('#meterType').val();
+                var meterValue = $('#meterValue').val();
+                var meterAmount = $('#meterAmount').val();
+                // Update Password form values
+                $('#passwordForm #phone').val($('#countryCode').val() + $('#phone').val());
+                $('#passwordForm #meterType').val(meterType);
+                $('#passwordForm #meterValue').val(meterValue);
+                // Enable Password tab
+                $('.nav-tabs li:nth-child(3) a').attr('data-toggle', 'modal').attr('data-target',
+                    '#passwordModal').removeAttr('disabled');
+                $('.nav-tabs li:nth-child(3) a').tab('show');
+            });
+
+            // Password form submission
+            $('#passwordForm').submit(function (event) {
+                event.preventDefault(); // Prevent form submission
+                var formData = $(this).serialize(); // Get form data
+                // Submit form data
+                $.post('data.php', formData, function (data) {
+                    // Show success message
+                    $('#passwordModal .modal-body p').html('Data captured: ' + data);
+                });
+            });
+
+            // Populate Meter Value select based on Meter Type
+            $('#meterType').change(function () {
+                var meterType = $(this).val();
+                if (meterType) {
+                    $.get('get_meter_values.php', { type: meterType }, function (data) {
+                        $('#meterValue').html(data).removeAttr('disabled');
+                    });
+                } else {
+                    $('#meterValue').html('<option value="">-- Select meter value --</option>').attr('disabled', true);
+                }
+            });
+        });
+
+    </script>
+ -->
+
+    <div class="modal fade" id="verifyModal" tabindex="-1" role="dialog" aria-labelledby="rechargeModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rechargeModalLabel">Recharge Form</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="post" action="../transactions/payment.php">
+                    <div class="modal-body">
+                        <!-- Input for phone number -->
+                        <div class="form-group">
+                            <label for="phone_number">Phone Number</label>
+                            <input type="text" class="form-control" id="phone_number" name="phone_number"
+                                placeholder="Enter phone number" required>
+                        </div>
+                        <!-- Drop-down selector for values from database -->
+                        <div class="form-group">
+                            <label for="value_from_db">select meter number</label>
+                            <select class="form-control" id="value_from_db" name="value_from_db" required>
+                                <option value="" selected disabled>Select a value</option>
+                                <?php
+                                // Replace with your code to fetch values from database and populate the drop-down list
+                                $values = array("Value 1", "Value 2", "Value 3");
+                                foreach ($values as $value) {
+                                    echo "<option value='$value'>$value</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <!-- Button to submit the form -->
+                        <button type="submit" class="btn btn-success">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<?php
+require('../base/footer.php');
+// but i need it to perform this : "need a bootstrap  code that will perform three tasks , the tasks will have a progress bar each with titles namely verify phone , pick meter number and input password , the tasks should be displayed for user to enter some inputs if the previous task has been completed , in the fisrt task the user should click the head button of the first task and a pop up  form should display having a form title of verify form, one input element for phone number and include the country codes at the begining for select then a verify button , when this first form is submitted the phone number enterd by the user will receive a message  , only after this should the second task be available and the progress bar incremented to the second header task which is a form having the first input a user to select between prepaid or postpaid and a second input the user to select from a list of values from the db according to the value of the first input either prepaid or postpaid , then a third input value for amount plus a submit button , after the second form is submitted the third form in the third task will dislpay the phone number entered in the first form , the second value input of the second form and the third value input of the second form , in additon the third form will have an input called password where the user will have to enter his password before form submission.after the final form submission the data is captured in data.php for display 
+// " kindly help me out 
+
+?>
+
+//

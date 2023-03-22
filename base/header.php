@@ -1,9 +1,10 @@
 <?php
-    session_start();
-    require($_SERVER["DOCUMENT_ROOT"]."/db_connect.php");
+session_start();
+require($_SERVER["DOCUMENT_ROOT"] . "/db_connect.php");
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -17,20 +18,36 @@
     <script src="/assets/js/jquery.dataTables.min.js"></script>
     <script src="/assets/js/dataTables.bootstrap5.min.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
 
     <style>
-        input,button,textarea,select{
+        input,
+        button,
+        textarea,
+        select {
             box-shadow: none !important;
         }
-        a{
+
+        a {
             text-decoration: none;
         }
     </style>
 </head>
+
 <body class="bg-gray-200">
     <nav class="navbar navbar-dark navbar-expand-sm bg-primary mb-5">
         <div class="container-fluid">
-            <button type="button" class="navbar-toggler shadow-none border-none text-white" data-bs-toggle="collapse" data-bs-target="#iturtlenavbar">
+            <button type="button" class="navbar-toggler shadow-none border-none text-white" data-bs-toggle="collapse"
+                data-bs-target="#iturtlenavbar">
                 <span class="navbar-toggler-icon border-none shadow-none"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-center" id="iturtlenavbar">
@@ -38,7 +55,7 @@
                     <li class="nav-item">
                         <a href="/" class="nav-link text-white">Home</a>
                     </li>
-                    <?php if(is_authenticated()){ ?>
+                    <?php if (is_authenticated()) { ?>
                         <li class="nav-item">
                             <a href="/transactions/transactions.php" class="nav-link text-white">Transactions</a>
                         </li>
@@ -46,9 +63,13 @@
                             <a href="/meter/meters.php" class="nav-link text-white">Meters</a>
                         </li>
                         <li class="nav-item">
+                            <button class="btn btn-primary" data-toggle="modal"
+                                data-target="#rechargeModal">Recharge</button>
+                        </li>
+                        <li class="nav-item">
                             <a href="/auth/logout.php" class="nav-link text-white">Logout</a>
                         </li>
-                    <?php }else{ ?>
+                    <?php } else { ?>
                         <li class="nav-item">
                             <a href="/auth/login.php" class="nav-link text-white">Login</a>
                         </li>
