@@ -1,30 +1,31 @@
 <?php
 session_start();
-// $errors = array();
-// $errmsg = '';
-// $config = array(
-//     "env" => "sandbox",
-//     "BusinessShortCode" => "888880",
-//     "key" => "",
-//     "secret" => "",
-//     "username" => "apitest",
-//     "TransactionType" => "CustomerPayBillOnline",
-//     "passkey" => "",
-//     "CallBackURL" => "callback.php",
-//     //When using localhost, Use Ngrok to forward the response to your Localhost
-//     "AccountReference" => "CompanyXLTD",
-//     "TransactionDesc" => "Payment of X",
-// );
+$errors = array();
+$errmsg = '';
+$config = array(
+    "env" => "sandbox",
+    "BusinessShortCode" => "888880",
+    "key" => "",
+    "secret" => "",
+    "username" => "apitest",
+    "TransactionType" => "CustomerPayBillOnline",
+    "passkey" => "",
+    "CallBackURL" => "callback.php",
+    //When using localhost, Use Ngrok to forward the response to your Localhost
+    "AccountReference" => "CompanyXLTD",
+    "TransactionDesc" => "Payment of X",
+);
 if (isset($_POST['submit_pay'])) {
 
 
-    echo $_POST['phone_number'];
-    // $phone = $_POST['phone_number'];
-    // $orderNo = $_POST['orderNo'];
-    // $amount = 1;
-    // $phone = (substr($phone, 0, 1) == "+") ? str_replace("+", "", $phone) : $phone;
-    // $phone = (substr($phone, 0, 1) == "0") ? preg_replace("/^0/", "254", $phone) : $phone;
-    // $phone = (substr($phone, 0, 1) == "7") ? "254{$phone}" : $phone;
+
+    $phone = $_POST['phone_number'];
+    $orderNo = $_POST['orderNo'];
+    $amount = 1;
+    $phone = (substr($phone, 0, 1) == "+") ? str_replace("+", "", $phone) : $phone;
+    $phone = (substr($phone, 0, 1) == "0") ? preg_replace("/^0/", "254", $phone) : $phone;
+    $phone = (substr($phone, 0, 1) == "7") ? "254{$phone}" : $phone;
+    echo $phone;
     // $access_token = ($config['env'] == "live") ? "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials" : "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials";
     // $credentials = base64_encode($config['key'] . ':' . $config['secret']);
 

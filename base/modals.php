@@ -25,7 +25,7 @@
                     <div class="form-group">
                         <label for="value_from_db">select meter number</label>
                         <select class="form-control" id="value_from_db" name="value_from_db" required>
-                            <option value="" selected disabled>Select a value</option>
+                            <option value="" selected disabled>Select meter</option>
                             <?php
                             // $values = array("Value 1", "Value 2", "Value 3");
                             // foreach ($values as $value) {
