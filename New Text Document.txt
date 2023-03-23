@@ -429,4 +429,59 @@ require('../base/footer.php');
 
 ?>
 
-//
+//<?php
+DARAJA API
+// Set the endpoint URL for the Daraja API
+$endpoint = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
+
+// Set the parameters for the request
+$params = array(
+    'BusinessShortCode' => 'YOUR_BUSINESS_SHORT_CODE',
+    'Password' => 'YOUR_PASSWORD',
+    'Timestamp' => date('YmdHis'),
+    'TransactionType' => 'CustomerPayBillOnline',
+    'Amount' => '100',
+    'PartyA' => 'YOUR_PHONE_NUMBER',
+    'PartyB' => 'YOUR_BUSINESS_SHORT_CODE',
+    'PhoneNumber' => 'YOUR_PHONE_NUMBER',
+    'CallBackURL' => 'https://example.com/callback',
+    'AccountReference' => 'YOUR_ACCOUNT_REFERENCE',
+    'TransactionDesc' => 'YOUR_TRANSACTION_DESCRIPTION',
+);
+
+// Generate the password for the request
+$passkey = 'YOUR_PASS_KEY';
+$plaintext = $params['BusinessShortCode'] . $passkey . $params['Timestamp'];
+$params['Password'] = base64_encode(hash('sha256', $plaintext, true));
+
+// Create the request body
+$body = json_encode(array(
+    'BusinessShortCode' => $params['BusinessShortCode'],
+    'Password' => $params['Password'],
+    'Timestamp' => $params['Timestamp'],
+    'TransactionType' => $params['TransactionType'],
+    'Amount' => $params['Amount'],
+    'PartyA' => $params['PartyA'],
+    'PartyB' => $params['PartyB'],
+    'PhoneNumber' => $params['PhoneNumber'],
+    'CallBackURL' => $params['CallBackURL'],
+    'AccountReference' => $params['AccountReference'],
+    'TransactionDesc' => $params['TransactionDesc'],//UNCLOSED JSON
+    
+    // Set up the HTTP POST request
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $endpoint);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization:Bearer YOUR_ACCESS_TOKEN')); // Replace YOUR_ACCESS_TOKEN with an actual access token
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+// Send the request and capture the response
+$response = curl_exec($ch);
+
+// Close the HTTP connection
+curl_close($ch);
+
+// Print the response
+echo $response;
+
