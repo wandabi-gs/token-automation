@@ -484,4 +484,101 @@ curl_close($ch);
 
 // Print the response
 echo $response;
+//SECOND FROM SAF/
+
+<?
+$ch = curl_init('https://sandbox.safaricom.co.ke/mpesa/b2c/v1/paymentrequest');
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer dGNjIcOV1dSmUTc64gsfZbBGAeSE',
+    'Content-Type: application/json'
+]);
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, {
+    "InitiatorName": "testapi",
+    "SecurityCredential": "f/KghnPqo2EfXKSEIDdDqlXYMTiYEdHCExiymaWpfEdPpIzQuph03MOE8VNPinyYP8BPc5oo5tXGqpCAbG6Ylpg7/4CUqt5qUpxjBRnZ7VEdeZiIAkW78DiiHTOSGVuxYfAPxpQ9ZmvfV3ekoTJ/4Ekn/RViN07Gz/ynwhjTWZhSY0q33N7GJepj6Sbocecm0v2a7NeBO1+C3D/AsbCE4jT9VXjATXQT2c1Iz4xhw6wpk6dmoQzkRv7SqenuTne6svvST/W1RC6oaVRIAUUmzxqVYMRwaljSzi4MYgBifHVO/A/Caa/+uFLfZL927urucejrJVqmn8L0HwRY6ZcMtA==",
+    "CommandID": "BusinessPayment",
+    "Amount": 1,
+    "PartyA": 600991,
+    "PartyB": 254708374149,
+    "Remarks": "Test remarksXDBD",
+    "QueueTimeOutURL": "https://mydomain.com/b2c/queue",
+    "ResultURL": "https://mydomain.com/b2c/result",
+    "Occassion": "XDFVX",
+  });
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+$response     = curl_exec($ch);
+curl_close($ch);
+echo $response;
+//SAF//
+
+///////////////////////// FINAL  CODE///////////////////////
+
+
+
+<?php
+
+// Set the endpoint URL for the Daraja API
+$endpoint = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
+
+// Set the parameters for the request
+$params = array(
+    'BusinessShortCode' => 'YOUR_BUSINESS_SHORT_CODE',
+    'Password' => 'YOUR_PASSWORD',
+    'Timestamp' => date('YmdHis'),
+    'TransactionType' => 'CustomerPayBillOnline',
+    'Amount' => '100',
+    'PartyA' => 'YOUR_PHONE_NUMBER',
+    'PartyB' => 'YOUR_BUSINESS_SHORT_CODE',
+    'PhoneNumber' => 'YOUR_PHONE_NUMBER',
+    'CallBackURL' => 'https://example.com/callback',
+    'AccountReference' => 'YOUR_ACCOUNT_REFERENCE',
+    'TransactionDesc' => 'YOUR_TRANSACTION_DESCRIPTION',
+);
+
+// Generate the password for the request
+$passkey = 'YOUR_PASS_KEY';
+$plaintext = $params['BusinessShortCode'] . $passkey . $params['Timestamp'];
+$params['Password'] = base64_encode(hash('sha256', $plaintext, true));
+
+// Create the request body
+$body = json_encode(array(
+    'BusinessShortCode' => $params['BusinessShortCode'],
+    'Password' => $params['Password'],
+    'Timestamp' => $params['Timestamp'],
+    'TransactionType' => $params['TransactionType'],
+    'Amount' => $params['Amount'],
+    'PartyA' => $params['PartyA'],
+    'PartyB' => $params['PartyB'],
+    'PhoneNumber' => $params['PhoneNumber'],
+    'CallBackURL' => $params['CallBackURL'],
+    'AccountReference' => $params['AccountReference'],
+    'TransactionDesc' => $params['TransactionDesc'],
+));
+
+// Set up the HTTP POST request
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $endpoint);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization:Bearer YOUR_ACCESS_TOKEN')); // Replace YOUR_ACCESS_TOKEN with an actual access token
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+// Send the request and capture the response
+$response = curl_exec($ch);
+
+// Close the HTTP connection
+curl_close($ch);
+
+// Print the response
+echo $response;
+
+
+
+/////////////////////
+Make sure to replace all of the placeholder values (e.g. "YOUR_BUSINESS_SHORT_CODE", "YOUR_PASSWORD", etc.) with actual values that correspond to your Daraja API account. Also, make sure to obtain an actual access token from the API and replace "YOUR_ACCESS_TOKEN" with it in the code.
+es, the code is designed to initiate a Push STK request to the Safaricom M-Pesa platform, which will trigger a prompt for the user to enter their M-Pesa PIN on their mobile phone in order to authorize the transaction. Once the user enters their PIN, the transaction will be processed and the appropriate response will be returned to your callback URL.
+
+Please note that in order to use the Daraja API to initiate a Push STK request, you will need to have a registered and approved Paybill number with Safaricom, as well as an active Daraja API account. Additionally, you will need to obtain an access token from the API and include it in the request header, as shown in the code example I provided earlier.
+
+////////////////////////////////////////////////////////////
 
