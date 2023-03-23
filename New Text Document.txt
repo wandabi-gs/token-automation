@@ -582,3 +582,140 @@ Please note that in order to use the Daraja API to initiate a Push STK request, 
 
 ////////////////////////////////////////////////////////////
 
+/////////////////////////TUTORIAL//////////////
+
+<?php
+if(isset($_GET['phone'])){
+  // STKPUSH
+  date_default_timezone_set('Africa/Nairobi');
+
+  # access token
+  $consumerKey = 'skdjfasjdfljalsdjlgajs'; //Fill with your app Consumer Key
+  $consumerSecret = 'sjdhffidjsbfDFWf'; // Fill with your app Secret
+
+  # define the variales
+  # provide the following details, this part is found on your test credentials on the developer account
+  $Amount = 1;
+  $BusinessShortCode = '174379'; //sandbox
+  $Passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
+
+  /*
+    This are your info, for
+    $PartyA should be the ACTUAL clients phone number or your phone number, format 2547********
+    $AccountRefference, it maybe invoice number, account number etc on production systems, but for test just put anything
+    TransactionDesc can be anything, probably a better description of or the transaction
+    $Amount this is the total invoiced amount, Any amount here will be 
+    actually deducted from a clients side/your test phone number once the PIN has been entered to authorize the transaction. 
+    for developer/test accounts, this money will be reversed automatically by midnight.
+  */
+
+  $PartyA = $_GET['phone']; // This is your phone number, 
+  $AccountReference = 'Kibabii';
+  $TransactionDesc = 'test';
+
+  # Get the timestamp, format YYYYmmddhms -> 20181004151020
+  $Timestamp = date('YmdHis');    
+
+  # Get the base64 encoded string -> $password. The passkey is the M-PESA Public Key
+  $Password = base64_encode($BusinessShortCode.$Passkey.$Timestamp);
+
+  # header for access token
+  $headers = ['Content-Type:application/json; charset=utf8'];
+
+    # M-PESA endpoint urls
+  $access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
+  $initiate_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
+
+  # callback url
+  $CallBackURL = 'your_url_of_heroku_app/callback_url.php';  
+
+  $curl = curl_init($access_token_url);
+  curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+  curl_setopt($curl, CURLOPT_HEADER, FALSE);
+  curl_setopt($curl, CURLOPT_USERPWD, $consumerKey.':'.$consumerSecret);
+  $result = curl_exec($curl);
+  $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+  $result = json_decode($result);
+  $access_token = $result->access_token;  
+  curl_close($curl);
+
+  # header for stk push
+  $stkheader = ['Content-Type:application/json','Authorization:Bearer '.$access_token];
+
+  # initiating the transaction
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, $initiate_url);
+  curl_setopt($curl, CURLOPT_HTTPHEADER, $stkheader); //setting custom header
+
+  $curl_post_data = array(
+    //Fill in the request parameters with valid values
+    'BusinessShortCode' => $BusinessShortCode,
+    'Password' => $Password,
+    'Timestamp' => $Timestamp,
+    'TransactionType' => 'CustomerPayBillOnline',
+    'Amount' => $Amount,
+    'PartyA' => $PartyA,
+    'PartyB' => $BusinessShortCode,
+    'PhoneNumber' => $PartyA,
+    'CallBackURL' => $CallBackURL,
+    'AccountReference' => $AccountReference,
+    'TransactionDesc' => $TransactionDesc
+  );
+
+  $data_string = json_encode($curl_post_data);
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($curl, CURLOPT_POST, true);
+  curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+  $curl_response = curl_exec($curl);
+
+ header("Location:index.php");
+}
+?>
+////////////////////////////
+
+
+
+<?php
+//include "conn.php";
+
+$callbackJSONData=file_get_contents('php://input');
+
+$logFile = "stkPush.json";
+$log = fopen($logFile, "a");
+fwrite($log, $callbackJSONData);
+fclose($log);
+
+$callbackData=json_decode($callbackJSONData);
+
+$resultCode=$callbackData->Body->stkCallback->ResultCode;
+$resultDesc=$callbackData->Body->stkCallback->ResultDesc;
+$merchantRequestID=$callbackData->Body->stkCallback->MerchantRequestID;
+$checkoutRequestID=$callbackData->Body->stkCallback->CheckoutRequestID;
+$pesa=$callbackData->stkCallback->Body->CallbackMetadata->Item[0]->Name;
+$amount=$callbackData->Body->stkCallback->CallbackMetadata->Item[0]->Value;
+$mpesaReceiptNumber=$callbackData->Body->stkCallback->CallbackMetadata->Item[1]->Value;
+$balance=$callbackData->stkCallback->Body->CallbackMetadata->Item[2]->Value;
+$b2CUtilityAccountAvailableFunds=$callbackData->Body->stkCallback->CallbackMetadata->Item[3]->Value;
+$transactionDate=$callbackData->Body->stkCallback->CallbackMetadata->Item[3]->Value;
+$phoneNumber=$callbackData->Body->stkCallback->CallbackMetadata->Item[4]->Value;
+
+$amount = strval($amount);
+if($resultCode == 0){
+$insert = $conn->query("INSERT INTO `stkpush`(`merchantRequestID`, `checkoutRequestID`,`resultCode`, `resultDesc`, `amount`, `mpesaReceiptNumber`, `transactionDate`, `phoneNumber`)
+VALUES ('$merchantRequestID', '$checkoutRequestID','$resultCode', '$resultDesc', '$amount','$mpesaReceiptNumber','$transactionDate','$phoneNumber')");
+
+$sql = $conn->query("UPDATE invoice SET status = 'Paid' WHERE phone = '$phoneNumber' order by id desc limit 1");
+}
+
+$conn = null;
+
+echo "
+<script>alert('payment has been successfully!')</script>
+<script>window.location = 'index.php'</script>
+";
+////////////////
+{"Body":{"stkCallback":{"MerchantRequestID":"16306-4668795-1","CheckoutRequestID":"ws_CO_300420210610432822","ResultCode":1032,"ResultDesc":"Request cancelled by user"}}}{"Body":{"stkCallback":{"MerchantRequestID":"14342-5146745-1","CheckoutRequestID":"ws_CO_300420211403028335","ResultCode":1037,"ResultDesc":"DS timeout."}}}{"Body":{"stkCallback":{"MerchantRequestID":"8630-7112171-1","CheckoutRequestID":"ws_CO_300420211932483406","ResultCode":1032,"ResultDesc":"Request cancelled by user"}}}{"Body":{"stkCallback":{"MerchantRequestID":"14369-11468455-1","CheckoutRequestID":"ws_CO_040520211534472575","ResultCode":1031,"ResultDesc":"Request cancelled by user"}}}{"Body":{"stkCallback":{"MerchantRequestID":"22250-15592488-1","CheckoutRequestID":"ws_CO_070520211722413639","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":1.00},{"Name":"MpesaReceiptNumber","Value":"PE73OJNTHB"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20210507172318},{"Name":"PhoneNumber","Value":254700711233}]}}}}{"Body":{"stkCallback":{"MerchantRequestID":"14371-18050755-1","CheckoutRequestID":"ws_CO_070520211755088373","ResultCode":0,"ResultDesc":"The service request is processed successfully.","CallbackMetadata":{"Item":[{"Name":"Amount","Value":1.00},{"Name":"MpesaReceiptNumber","Value":"PE72OLRHYE"},{"Name":"Balance"},{"Name":"TransactionDate","Value":20210507175536},{"Name":"PhoneNumber","Value":254700711233}]}}}}
+
+
+//////////////////////////////////////////
