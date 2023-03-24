@@ -1,94 +1,80 @@
-<?php 
-session_start();
-$errors  = array();
-$errmsg  = '';
-$config = array(
-    "env"              => "sandbox",
-    "BusinessShortCode"=> "888880",
-    "key"              => "",
-    "secret"           => "",
-    "username"         => "apitest",
-    "TransactionType"  => "CustomerPayBillOnline",
-    "passkey"          => "",
-    "CallBackURL"      => "callback.php", //When using localhost, Use Ngrok to forward the response to your Localhost
-    "AccountReference" => "CompanyXLTD",
-    "TransactionDesc"  => "Payment of X" ,
-);
-if (isset($_POST['phone_number'])) {
-    $phone = $_POST['phone_number'];
-    $orderNo = $_POST['orderNo'];
-    $amount = 1;
-    $phone = (substr($phone, 0, 1) == "+") ? str_replace("+", "", $phone) : $phone;
-    $phone = (substr($phone, 0, 1) == "0") ? preg_replace("/^0/", "254", $phone) : $phone;
-    $phone = (substr($phone, 0, 1) == "7") ? "254{$phone}" : $phone;
-    $access_token = ($config['env']  == "live") ? "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials" : "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"; 
-    $credentials = base64_encode($config['key'] . ':' . $config['secret']); 
-    
-    $ch = curl_init($access_token);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Basic " . $credentials]);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
-    $response = curl_exec($ch);
-    curl_close($ch);
-    $result = json_decode($response); 
-    $token = isset($result->{'access_token'}) ? $result->{'access_token'} : "N/A";
-    $timestamp = date("YmdHis");
-    $password  = base64_encode($config['BusinessShortCode'] . "" . $config['passkey'] ."". $timestamp);
-    $curl_post_data = array( 
-        "BusinessShortCode" => $config['BusinessShortCode'],
-        "Password" => $password,
-        "Timestamp" => $timestamp,
-        "TransactionType" => $config['TransactionType'],
-        "Amount" => $amount,
-        "PartyA" => $phone,
-        "PartyB" => $config['BusinessShortCode'],
-        "PhoneNumber" => $phone,
-        "CallBackURL" => $config['CallBackURL'],
-        "AccountReference" => $config['AccountReference'],
-        "TransactionDesc" => $config['TransactionDesc'],
-    ); 
+<?php
+if (isset($_POST['submit_pay'])) {
+    // STKPUSH
+    date_default_timezone_set('Africa/Nairobi');
+
+    # access token
+    $consumerKey = 'G2UiWDRk9kXv7P4sqH11l85rXEjKatRw'; //Fill with your app Consumer Key
+    $consumerSecret = 'gqEUucillqrGPzHx'; // Fill with your app Secret
+
+    # define the variales
+    # provide the following details, this part is found on your test credentials on the developer account
+    $Amount = $_POST['amount'];
+    $BusinessShortCode = '174379'; //sandbox
+    $Passkey = 'Uy15Ph8r34B3ssjhReuz4IfrG3Tv+AOyAvUfjGnZXBl3vk9/UsoEZt2fCFxVRrWfknXfHJkhrmyp8EZu6Uym9Unmk0fJ1pjVzPmhTRxR9Zt6xzYtWhxuk+mICKNYC+nujLrwmbpe92AGv1JWVCInaD3Hs0ro6CGqtJ7eCBr6J5wzjx94MK9GwlIua86M5ayX3PTrO2eOzZyeBiAPF+6tyof9ZeqKOZNA9l+JaTAqHgXD43Lpx/G3LW2kTyZOabBYayWqmfHiB42CCnELeaguYMgv3v8NqR5MrKy14VXW4OlrT9YaUIjJjxhcjVKgIazXd4eaT1Q+4mCVLIgARfvgBw==';
+
+
+    $PartyA = $_POST['phone_number']; // This is your phone number, 
+    $AccountReference = 'kplc token recharge';
+    $TransactionDesc = 'test';
+
+    # Get the timestamp, format YYYYmmddhms -> 20181004151020
+    $Timestamp = date('YmdHis');
+
+    # Get the base64 encoded string -> $password. The passkey is the M-PESA Public Key
+    $Password = base64_encode($BusinessShortCode . $Passkey . $Timestamp);
+
+    # header for access token
+    $headers = ['Content-Type:application/json; charset=utf8'];
+
+    # M-PESA endpoint urls
+    $access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
+    $initiate_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
+
+    # callback url
+    $CallBackURL = './callback_url.php';
+
+    $curl = curl_init($access_token_url);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($curl, CURLOPT_HEADER, FALSE);
+    curl_setopt($curl, CURLOPT_USERPWD, $consumerKey . ':' . $consumerSecret);
+    $result = curl_exec($curl);
+    $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $result = json_decode($result);
+    $access_token = $result->access_token;
+    curl_close($curl);
+
+    # header for stk push
+    $stkheader = ['Content-Type:application/json', 'Authorization:Bearer ' . $access_token];
+
+    # initiating the transaction
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $initiate_url);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $stkheader); //setting custom header
+
+    $curl_post_data = array(
+        //Fill in the request parameters with valid values
+        'BusinessShortCode' => $BusinessShortCode,
+        'Password' => $Password,
+        'Timestamp' => $Timestamp,
+        'TransactionType' => 'CustomerPayBillOnline',
+        'Amount' => $Amount,
+        'PartyA' => $PartyA,
+        'PartyB' => $BusinessShortCode,
+        'PhoneNumber' => $PartyA,
+        // 'CallBackURL' => $CallBackURL,
+        'AccountReference' => $AccountReference,
+        'TransactionDesc' => $TransactionDesc
+    );
+
     $data_string = json_encode($curl_post_data);
-    $endpoint = ($config['env'] == "live") ? "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest" : "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"; 
-    $ch = curl_init($endpoint );
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer '.$token,
-        'Content-Type: application/json'
-    ]);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    $response     = curl_exec($ch);
-    curl_close($ch);
-    $result = json_decode(json_encode(json_decode($response)), true);
-    if(!preg_match('/^[0-9]{10}+$/', $phone) && array_key_exists('errorMessage', $result)){
-        $errors['phone'] = $result["errorMessage"];
-    }
-    if($result['ResponseCode'] === "0"){         //STK Push request successful
-        $MerchantRequestID = $result['MerchantRequestID'];
-        $CheckoutRequestID = $result['CheckoutRequestID'];
-        //Saves your request to a database
-        $conn = mysqli_connect("localhost","root","","mpesa");
-       
-        $sql = "INSERT INTO `orders`(`ID`, `OrderNo`, `Amount`, `Phone`, `CheckoutRequestID`, `MerchantRequestID`) VALUES ('','".$orderNo."','".$amount."','".$phone."','".$CheckoutRequestID."','".$MerchantRequestID."');";
-        
-        if ($conn->query($sql) === TRUE){
-            $_SESSION["MerchantRequestID"] = $MerchantRequestID;
-            $_SESSION["CheckoutRequestID"] = $CheckoutRequestID;
-            $_SESSION["phone"] = $phone;
-            $_SESSION["orderNo"] = $orderNo;
-            header('location: confirm-payment.php');
-        }else{
-            $errors['database'] = "Unable to initiate your order: ".$conn->error;;  
-            foreach($errors as $error) {
-                $errmsg .= $error . '<br />';
-            } 
-        }
-        
-    }else{
-        $errors['mpesastk'] = $result['errorMessage'];
-        foreach($errors as $error) {
-            $errmsg .= $error . '<br />';
-        }
-    }
-    
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    $curl_response = curl_exec($curl);
+
+    // header("Location:../index.php");
 }
+
 ?>
