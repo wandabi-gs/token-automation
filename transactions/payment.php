@@ -4,7 +4,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require($_SERVER["DOCUMENT_ROOT"] . "/db_connect.php");
     $response = ["success" => true, "error" => ""];
 
-    $phone_number = "254".htmlspecialchars($_POST["phone_number"]);
+    $phone_number = "254" . htmlspecialchars($_POST["phone_number"]);
     $amount = htmlspecialchars($_POST["amount"]);
     $meter_number = htmlspecialchars($_POST["meter_number"]);
 
@@ -17,7 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $Type_of_Transaction = 'CustomerPayBillOnline';
     $Token_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
     $OnlinePayment = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
-    $CallBackURL = 'https://2974-154-159-237-136.in.ngrok.io/transactions/callback.php';
+    $CallBackURL = 'http://callback.php';
+    // $CallBackURL = "./callback.php";
     $Time_Stamp = date("Ymdhis");
     $password = base64_encode($Business_Code . $Passkey . $Time_Stamp);
 

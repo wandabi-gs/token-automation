@@ -1,17 +1,23 @@
 <?php
+require($_SERVER["DOCUMENT_ROOT"] . "/db_connect.php");
 
-$content = file_get_contents('php://input'); //Receives the JSON Result from safaricom
-$res = json_decode($content, true); //Convert the json to an array
+$data = file_get_contents('php://input');
+$decoded_data = json_decode($data);
 
-$dataToLog = array(
-    date("Y-m-d H:i:s"), //Date and time
-    " MerchantRequestID: " . $res['Body']['stkCallback']['MerchantRequestID'],
-    " CheckoutRequestID: " . $res['Body']['stkCallback']['CheckoutRequestID'],
-    " ResultCode: " . $res['Body']['stkCallback']['ResultCode'],
-    " ResultDesc: " . $res['Body']['stkCallback']['ResultDesc'],
-);
+// Check if the transaction was successful
+if ($decoded_data->Body->stkCallback->ResultCode == 0) {
+    $merchant_request_id = $decoded_data->Body->stkCallback->MerchantRequestID;
+    $checkout_request_id = $decoded_data->Body->stkCallback->CheckoutRequestID;
+    $result_description = $decoded_data->Body->stkCallback->ResultDesc;
 
-$data = implode(" - ", $dataToLog);
-$data .= PHP_EOL;
-file_put_contents('transaction.log', $data, FILE_APPEND); 
+    // Update the transaction status in the database
+    $stmt = $conn->prepare("UPDATE transactions SET status = 'completed', result_description = ? WHERE merchant_request_id = ?");
+    $stmt->bind_param("ss", $result_description, $merchant_request_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // Perform other necessary actions, such as sending a confirmation message to the customer
+    // ...
+}
+
 ?>
