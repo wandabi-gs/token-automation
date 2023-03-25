@@ -1,64 +1,88 @@
-    <div class="modal fade" id="addMeterModal">
-        <div class="modal-dialog modal-dialog-centered">
-            <form class="modal-content" action="/meter/add-meter.php" method="post">
-                <div class="modal-header">
-                    <h4>Add Meter</h4>
-                    <button type="button" class="btn btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mt-3 form-floating">
-                        <input class="form-control" type="text" id="meter_number" value="<?php echo($saved_meter); ?>" name="meter_number" placeholder="" required/>
-                        <label for="meter_number">Meter Number</label>
-                        <div class="mt-1 text-danger">
-                            <?php echo($meter_number_error); ?>
-                        </div>
-                    </div>
+<script>
+    
+    function DeleteMeter(meter_id) {
+        let formData = new FormData();
+        formData.append("meter_id",meter_id);
+        axios.post(
+            "/meter/delete-meter.php",
+            formData
+        ).then(response => {
+            if(response.data.success){
+                alert("Meter has been deleted succesfully");
+                window.location.reload();
+            }else{
+                alert(response.data.error);
+            }
+        })
+    }
 
-                    <div class="mt-3 form-floating">
-                        <select name="meter_type" id="meter_type" class="form-select">
-                            <option value="pre-paid">Pre Paid</option>
-                            <option value="post-paid">Post Paid</option>
-                        </select>
-                        <label for="meter_type">Meter Type</label>
-                        <div class="mt-1 text-danger">
-                            <?php echo($meter_type_error); ?>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button name="submit_meter" type="submit" class="btn btn-primary form-control">Add Meter</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    function AddMeterPerson(meter_id){
+        $(document).ready(function () {
+            $("#meter_person_id").val(meter_id);
+            $("#meter_persson_span_id").text(meter_id);
+            $("#addMeterPersonModal").modal("show");
+        })
+    }
 
-    <div class="modal fade" id="addMeterPersonModal">
-        <div class="modal-dialog modal-dialog-centered">
-            <form class="modal-content" action="/meter/add-person.php" method="post">
-                <div class="modal-header">
-                    <h4>Add Person</h4>
-                    <button type="button" class="btn btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mt-3 form-floating">
-                        <input class="form-control" type="email" id="user_email" value="<?php echo($saved_meter); ?>" name="user_email" placeholder="" required/>
-                        <label for="user_email">User Email</label>
-                        <div class="mt-1 text-danger">
-                            <?php echo($user_email_error); ?>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button name="submit_meter" type="submit" class="btn btn-primary form-control">Add Person</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    $(document).ready(function () {
+        $('#addMeterForm').on('submit', function (e) {
+            e.preventDefault();
+            const form = $('#addMeterForm');
 
-    </body>
+            const formData = new FormData(form[0]);
+
+            form.find(':input').each(function () {
+                formData.append($(this).attr('name'), $(this).val());
+            });
+
+            axios.post(
+                form.attr("action"),
+                formData
+            ).then(response => {
+                if (response.data.success) {
+                    $("#addMeterModal").modal("hide");
+                    alert("Meter has been added succesfully");
+                    window.location.reload()
+                } else {
+                    $("#add_meter_error").text(response.data.error);
+                }
+            });
+        });
+
+        $("#addMeterPersonForm").on("submit", function(e){
+            e.preventDefault();
+            const form = $('#addMeterPersonForm');
+
+            const formData = new FormData(form[0]);
+
+            form.find(':input').each(function () {
+                formData.append($(this).attr('name'), $(this).val());
+            });
+
+            axios.post(
+                form.attr("action"),
+                formData
+            ).then(response => {
+                if (response.data.success) {
+                    $("#addMeterPersonModal").modal("hide");
+                    alert("User has been linked to the meter succesfully");
+                    window.location.reload()
+                } else {
+                    $("#add_meter_person_error").text(response.data.error);
+                }
+            });
+        })
+
+        $("#meters_table").DataTable();
+        $("#transactionsTable").DataTable();
+    });
+</script>
+</body>
+
 </html>
-<?php 
-    if(isset($meterModalOpen) && $meterModalOpen){
-        echo('<script>$(document).ready(function(){$("#addMeterModal").modal("show");})</script>');
-    } 
+<?php
+require($_SERVER["DOCUMENT_ROOT"] . "/base/modals.php");
+if (isset($meterModalOpen) && $meterModalOpen) {
+    echo ('<script>$(document).ready(function(){$("#addMeterModal").modal("show");})</script>');
+}
 ?>
