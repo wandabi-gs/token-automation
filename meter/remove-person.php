@@ -4,12 +4,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require($_SERVER["DOCUMENT_ROOT"] . "/db_connect.php");
     $response = ["success" => true, "error" => ""];
     if (is_authenticated()) {
-        $email = htmlspecialchars($_POST["user_email"]);
+        $user_id = htmlspecialchars($_POST["user_id"]);
         $meter_id = htmlspecialchars($_POST["meter_id"]);
-        $user_exists = $db_connect->query("SELECT id FROM user WHERE email='{$email}'");
+        $user_exists = $db_connect->query("SELECT id FROM user WHERE user_id='{$user_id}'");
         if($user_exists->rowCount() === 0){
             $response["success"] = false;
-            $response["error"] = "A user with the email is not registered";
+            $response["error"] = "The specified user is not registered";
         }else{
             $meter_exists = $db_connect->query("SELECT id FROM meter WHERE meter_id='{$meter_id}'");
             if($meter_exists->rowCount() === 0){
@@ -25,10 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $response["error"] = "This user is already linked to this meter";
                 }else{
                     try{
-                        $db_connect->exec("INSERT INTO user_meter(user_id,meter_id) VALUES('{$user["id"]}','{$meter["id"]}')");
+                        $db_connect->exec("DELETE FROM user_meter WHERE user_id='{$user["id"]}' AND meter_id='{$meter["id"]}'");
                     }catch(PDOException $pde){
                         $response["success"] = false;
-                        $response["error"] = "An error occured, the user was not linked to this meter";
+                        $response["error"] = "An error occured, the user was unlinked from this meter";
                     }
                 }
             }

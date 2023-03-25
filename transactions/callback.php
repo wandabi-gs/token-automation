@@ -10,8 +10,8 @@ $dataToLog = array(
     " ResultCode: " . $res['Body']['stkCallback']['ResultCode'],
     " ResultDesc: " . $res['Body']['stkCallback']['ResultDesc'],
 );
+
 $data = implode(" - ", $dataToLog);
 $data .= PHP_EOL;
-file_put_contents('transaction_log', $data, FILE_APPEND); //Logs the results to our log file
-//Saves the result to the database
+file_put_contents('transaction.log', $data, FILE_APPEND); 
 ?>
