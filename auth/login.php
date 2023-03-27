@@ -1,5 +1,5 @@
 <?php
-    require("../base/header.php");
+    require("../base/authheader.php");
 
     $errors = [
         "email" => "",

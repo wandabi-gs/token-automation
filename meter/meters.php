@@ -1,7 +1,7 @@
 <?php
 require($_SERVER["DOCUMENT_ROOT"]."/base/header.php");
 ?>
-<div class="container bg-white shadow p-3 pt-0">
+<div class="mx-3 bg-white shadow p-3 pt-0">
     <div class="my-3 p-2 bg-gray-400">
         <div class="d-flex flex-row justify-content-between">
             <button type="button" class="btn btn-success bg-green-800" data-bs-toggle="modal"
