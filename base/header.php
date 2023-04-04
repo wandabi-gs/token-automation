@@ -2,17 +2,20 @@
 session_start();
 require($_SERVER["DOCUMENT_ROOT"] . "/db_connect.php");
 
-$meters_query = $db_connect->query("SELECT meter.*,user.* FROM meter JOIN user_meter ON meter.id = user_meter.meter_id JOIN user ON user_meter.user_id = user.id");
+$meters_query = $db_connect->query("SELECT meter.*,user.* FROM meter JOIN
+ user_meter ON meter.id = user_meter.meter_id JOIN user ON user_meter.user_id = '{$_SESSION["user"]["id"]}'");
+
+// Create an array to store the meters and their associated users
+$meters = array();
 
 if ($meters_query->rowCount() > 0) {
-    // Create an array to store the meters and their associated users
-    $meters = array();
 
-    while($row = $meters_query->fetch(PDO::FETCH_ASSOC)) {
+    while ($row = $meters_query->fetch(PDO::FETCH_ASSOC)) {
         // If the meter doesn't already exist in the array, create an associative array for it
         if (!array_key_exists($row["meter_id"], $meters)) {
             $meters[$row["meter_id"]] = array(
                 "meter_id" => $row["meter_id"],
+
                 "meter_number" => $row["meter_number"],
                 "meter_type" => $row["meter_type"],
                 "current_token" => $row["current_token"],
@@ -53,7 +56,7 @@ if (!is_authenticated()) {
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/axios.min.js"></script>
     <!-- Bootstrap CSS -->
-    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"> -->
 
     <!-- jQuery -->
     <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script> -->

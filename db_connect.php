@@ -1,7 +1,7 @@
 <?php
 $servername = "localhost";
-$username = "wandabi";
-$password = "gydion1880";
+$username = "root";
+$password = "";
 
 try {
     $db_connect = new PDO("mysql:host=$servername;dbname=token", $username, $password);
@@ -20,6 +20,8 @@ function is_authenticated()
     }
 }
 
+
+
 function generate_uuid($table, $uuid_field)
 {
     global $db_connect;
@@ -34,4 +36,16 @@ function generate_uuid($table, $uuid_field)
 
     return $uuid;
 }
+function generateTransactionId($length = 36)
+{
+    if (function_exists('random_bytes')) {
+        $bytes = random_bytes(ceil($length / 2));
+    } elseif (function_exists('openssl_random_pseudo_bytes')) {
+        $bytes = openssl_random_pseudo_bytes(ceil($length / 2));
+    } else {
+        throw new Exception('No cryptographically secure random function available');
+    }
+    return substr(str_replace(array('/', '+', '='), '', base64_encode($bytes)), 0, $length);
+}
+
 ?>
